@@ -1,0 +1,29 @@
+cache_dir: "../tensorleap/data/conll2003/"
+
+
+train_size: 1000
+val_size: 1000
+test_size: 1000
+
+ul_size: 1000
+
+max_length: 512
+
+labels:
+  - "O"       # Outside of a named entity
+  - "B-PER"   # Beginning of a person’s name
+  - "I-PER"   # Inside of a person’s name
+  - "B-ORG"   # Beginning of an organization
+  - "I-ORG"   # Inside of an organization
+  - "B-LOC"   # Beginning of a location
+  - "I-LOC"   # Inside of a location
+  - "B-MISC"  # Beginning of a miscellaneous entity
+  - "I-MISC"  # Inside of a miscellaneous entity
+
+categories:
+  - "O"     # Outside of a named entity
+  - "PER"   # person’s name
+  - "ORG"   # organization
+  - "LOC"   # location
+  - "MISC"  # miscellaneous entity
+

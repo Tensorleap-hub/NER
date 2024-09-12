@@ -1,0 +1,12 @@
+codeIntegrationId: 66d0674ae649aecdcc68acaf
+projectId: 66c20d3c91f772f9177f5f08
+secretId: ""
+entryFile: leap_binder.py
+include:
+    - NER/utils/*.py
+    - NER/*.py
+    - NER/*.yaml
+    - tl/*.py
+    - leap_binder.py
+    - leap_test.py
+    - leap_custom_test.py

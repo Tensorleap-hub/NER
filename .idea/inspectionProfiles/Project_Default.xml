@@ -1,0 +1,39 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredPackages">
+        <value>
+          <list size="26">
+            <item index="0" class="java.lang.String" itemvalue="typing-extensions" />
+            <item index="1" class="java.lang.String" itemvalue="numpy" />
+            <item index="2" class="java.lang.String" itemvalue="tensorflow-io-gcs-filesystem" />
+            <item index="3" class="java.lang.String" itemvalue="onnx" />
+            <item index="4" class="java.lang.String" itemvalue="tensorflow-metadata" />
+            <item index="5" class="java.lang.String" itemvalue="tensorflow-estimator" />
+            <item index="6" class="java.lang.String" itemvalue="tensorflow-gcs-config" />
+            <item index="7" class="java.lang.String" itemvalue="glob2" />
+            <item index="8" class="java.lang.String" itemvalue="pandas-profiling" />
+            <item index="9" class="java.lang.String" itemvalue="pandas-datareader" />
+            <item index="10" class="java.lang.String" itemvalue="pandas" />
+            <item index="11" class="java.lang.String" itemvalue="tqdm" />
+            <item index="12" class="java.lang.String" itemvalue="Keras-Preprocessing" />
+            <item index="13" class="java.lang.String" itemvalue="kaggle" />
+            <item index="14" class="java.lang.String" itemvalue="pandas-gbq" />
+            <item index="15" class="java.lang.String" itemvalue="tensorflow" />
+            <item index="16" class="java.lang.String" itemvalue="keras-vis" />
+            <item index="17" class="java.lang.String" itemvalue="tensorflow-probability" />
+            <item index="18" class="java.lang.String" itemvalue="tensorflow-hub" />
+            <item index="19" class="java.lang.String" itemvalue="matplotlib" />
+            <item index="20" class="java.lang.String" itemvalue="tensorflow-datasets" />
+            <item index="21" class="java.lang.String" itemvalue="Pillow" />
+            <item index="22" class="java.lang.String" itemvalue="pyyaml" />
+            <item index="23" class="java.lang.String" itemvalue="scikit-learn" />
+            <item index="24" class="java.lang.String" itemvalue="code-loader" />
+            <item index="25" class="java.lang.String" itemvalue="tensorflow-macos" />
+          </list>
+        </value>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>

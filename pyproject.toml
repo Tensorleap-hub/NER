@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "ner"
+version = "0.1.0"
+description = ""
+authors = ["danielle.benbashat <danielle.benbashat@tensorleap.ai>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.12"
+code-loader = "1.0.48"
+datasets = "^2.21.0"
+transformers = "^4.44.2"
+matplotlib = ">=3.3,<3.4"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
