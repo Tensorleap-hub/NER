@@ -1,7 +1,13 @@
 from typing import List, Tuple
+
+import numpy as np
+
 from NER.config import CONFIG
 import tensorflow as tf
 
+model_labels = np.arange(len(CONFIG["labels"]))
+model_label_to_ds_label = {0: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5, 8: 6, 1: 7, 2: 8}
+ds_label_to_model_label = {v: k for k, v in model_label_to_ds_label.items()}
 
 def hf_get_labels(ds) -> List[str]:
     """ Given HF dataset, return task labels """
@@ -25,6 +31,7 @@ def hf_decode_labels(sample) -> Tuple[str, str]:
 
     return line1, line2
 
+
 def _tag_to_entity_type(tag: str) -> str:
     return tag.split("-")[-1]
 
@@ -33,10 +40,13 @@ def _is_entity(tag: str) -> bool:
     return tag != CONFIG["labels"][0]
 
 def transform_prediction(tensor: tf.Tensor):
-    """ Check if need to transform the tensor """
+    """ Check if need to transform the tensor shape: [B, 512, 9] """
     if tensor.shape[-1] != len(CONFIG['labels']):
         tensor = tf.transpose(tensor, perm=[0, 2, 1])
-    return tensor
+    # Permute the order of model logits predictions to the order given by HuggingFace DS
+    permute_idx = [ds_label_to_model_label[l] for l in model_labels]
+    tensor_permuted = tf.gather(tensor, permute_idx, axis=-1)
+    return tensor_permuted
 
 
 def align_labels_with_tokens(labels, word_ids):

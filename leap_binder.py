@@ -127,9 +127,10 @@ leap_binder.add_custom_metric(function=precision_recall_f1, name="precision_reca
 leap_binder.add_prediction(name='classes', labels=CONFIG["labels"])
 
 # TL Visualizers
-# leap_binder.set_visualizer(function=class_visualizer, visualizer_type=LeapDataType.Text, name="class_visualizer")
+# leap_binder.set_visualizer(function=raw_text_visualizer, visualizer_type=LeapDataType.Text, name="raw_text_visualizer")
 leap_binder.set_visualizer(function=input_visualizer, visualizer_type=LeapDataType.Text, name="input_visualizer")
-leap_binder.set_visualizer(function=text_visualizer_mask, visualizer_type=LeapDataType.TextMask, name="mask_visualizer")
+leap_binder.set_visualizer(function=text_visualizer_mask_gt, visualizer_type=LeapDataType.TextMask, name="mask_visualizer_gt")
+leap_binder.set_visualizer(function=text_visualizer_mask_pred, visualizer_type=LeapDataType.TextMask, name="mask_visualizer_pred")
 
 if __name__ == "__main__":
     leap_binder.check()

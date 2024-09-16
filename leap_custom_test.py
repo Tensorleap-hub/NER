@@ -44,16 +44,19 @@ def check_custom_integration():
             pred = tf.transpose(pred, [0, 2, 1])        # simulate as in the platform
 
             batched_gt = gt[None, ...]
-            true_predictions, true_labels = postprocess_predictions(pred, tokenized_inputs.data["labels"])
+            line1, line2 = hf_decode_labels(train.data['ds'][0])
+            true_predictions = postprocess_predictions(pred, tokenized_inputs.data["input_ids"])
+            true_predictions = postprocess_predictions(pred)
+            # postprocess_labels(gt[None, ...].numpy().tolist())
             inputs_ids = inputs["input_ids"][0]
             vis = input_visualizer(inputs_ids)
-            # visualize(vis) if PLOT else None
             vis.plot_visualizer() if PLOT else None
+            # visualize(vis) if PLOT else None
 
-            vis = text_visualizer_mask(inputs_ids, gt_vec_labels=gt, pred_vec_labels=pred[0])
+            vis = text_visualizer_mask_pred(inputs_ids, pred_vec_labels=pred[0])
             vis.plot_visualizer() if PLOT else None
             #
-            vis = text_visualizer_mask(inputs_ids, gt_vec_labels=gt)
+            vis = text_visualizer_mask_gt(inputs_ids, gt_vec_labels=gt)
             vis.plot_visualizer() if PLOT else None
             #
             # vis = class_visualizer(pred)

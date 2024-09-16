@@ -1,11 +1,11 @@
 cache_dir: "../tensorleap/data/conll2003/"
 
 
-train_size: 1000
-val_size: 1000
-test_size: 1000
+train_size: 10 #00
+val_size: 10 #00
+test_size: 10 #00
 
-ul_size: 1000
+ul_size: 10 #00
 
 max_length: 512
 
@@ -27,3 +27,7 @@ categories:
   - "LOC"   # location
   - "MISC"  # miscellaneous entity
 
+
+special_token_id: -100
+CLS_ID: 101
+SEP_ID: 102
