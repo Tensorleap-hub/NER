@@ -1,11 +1,11 @@
 cache_dir: "../tensorleap/data/conll2003/"
 
 
-train_size: 10 #00
-val_size: 10 #00
-test_size: 10 #00
+train_size: 1000
+val_size: 1000
+test_size: 1000
 
-ul_size: 10 #00
+ul_size: 1000
 
 max_length: 512
 
@@ -20,6 +20,18 @@ labels:
   - "B-MISC"  # Beginning of a miscellaneous entity
   - "I-MISC"  # Inside of a miscellaneous entity
 
+model_labels:
+  - 'O'
+  - 'B-MISC'
+  - 'I-MISC'
+  - 'B-PER'
+  - 'I-PER'
+  - 'B-ORG'
+  - 'I-ORG'
+  - 'B-LOC'
+  - 'I-LOC'
+
+
 categories:
   - "O"     # Outside of a named entity
   - "PER"   # person’s name
@@ -27,6 +39,15 @@ categories:
   - "LOC"   # location
   - "MISC"  # miscellaneous entity
 
+"O": 0
+"B-MISC": 1,
+"I-MISC": 2,
+"B-PER": 3,
+"I-PER": 4,
+"B-ORG": 5,
+"I-ORG": 6,
+"B-LOC": 7,
+"I-LOC": 8,
 
 special_token_id: -100
 CLS_ID: 101
