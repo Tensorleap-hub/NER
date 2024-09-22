@@ -1,9 +1,11 @@
+# import spacy
 from code_loader.contract.datasetclasses import PreprocessResponse
 
 from NER.utils.ner import _is_entity, _tag_to_entity_type
 from tl.metadata_helpers import *
 from tl.visualizers import *
 
+# nlp = spacy.load("en_core_web_sm")
 
 def count_instances(int_tags):
     cats_cnt = {c: 0 for c in CONFIG["categories"][1:]}
@@ -40,7 +42,7 @@ def count_oov(tokens, int_tags):
     return oov_tokens_cnt
 
 
-def count_capitalized(tokens, int_tags):
+def string_formatting(tokens, int_tags):
     tokens_cnt = {f"{c}_{c_case}": 0 for c in CONFIG["categories"][1:]+["total"] for c_case in ["lower", "upper", "capitalize"]}
     tags = [map_idx_to_label[i] for i in int_tags]
     for i, tag in enumerate(tags):
@@ -57,8 +59,14 @@ def count_capitalized(tokens, int_tags):
             cat = _tag_to_entity_type(tags[i])
             tokens_cnt[cat + f"_{key}"] += 1
 
-        tokens_cnt["total" + f"_{key}"] += 1
+        tokens_cnt["total" + f"_{key}"] += 1        # update count of all tokens
 
+    tokens_cnt_prec = {}
+    # add relative counts as well
+    length = max(len(tags), 1)
+    for k, v in tokens_cnt.items():
+        tokens_cnt_prec[k + "_percentage"] = v / length
+    tokens_cnt.update(tokens_cnt_prec)
     return tokens_cnt
 
 
@@ -83,7 +91,7 @@ def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     for k, v in res.items():
         metadata_dic[k+"_oov_cnt"] = v
     # Entity capitalized
-    res = count_capitalized(tokens, tags)
+    res = string_formatting(tokens, tags)
     metadata_dic.update(res)
 
     # Language
@@ -95,3 +103,8 @@ def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     #     #TODO
     # else:       # Labeled
     return metadata_dic
+
+
+# def detect_language(text):
+#     doc = nlp(text)
+#     return doc.lang_
