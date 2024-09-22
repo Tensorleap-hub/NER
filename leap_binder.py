@@ -8,6 +8,7 @@ from code_loader.contract.enums import LeapDataType
 
 
 from NER.dataset import load_data, downsample_hf_dataset
+from NER.utils.metrics import *
 from tl.metadata_helpers import *
 from tl.visualizers import *
 
@@ -121,16 +122,20 @@ leap_binder.set_metadata(function=metadata_dic, name='metadata_dic')
 leap_binder.add_custom_loss(function=CE_loss, name="CE_loss")
 
 # Metrics
-leap_binder.add_custom_metric(function=precision_recall_f1, name="precision_recall_f1")
+leap_binder.add_custom_metric(function=calc_metrics, name="metrics")
+leap_binder.add_custom_metric(function=compute_entity_entropy_per_sample, name="avg_entity_entropy")
+leap_binder.add_custom_metric(function=count_splitting_merging_errors, name="errors")
 
 # The Prediction Labels
-leap_binder.add_prediction(name='classes', labels=CONFIG["labels"])
+leap_binder.add_prediction(name='classes', labels=CONFIG["model_labels"], channel_dim=1)
 
 # TL Visualizers
 # leap_binder.set_visualizer(function=raw_text_visualizer, visualizer_type=LeapDataType.Text, name="raw_text_visualizer")
 leap_binder.set_visualizer(function=input_visualizer, visualizer_type=LeapDataType.Text, name="input_visualizer")
 leap_binder.set_visualizer(function=text_visualizer_mask_gt, visualizer_type=LeapDataType.TextMask, name="mask_visualizer_gt")
 leap_binder.set_visualizer(function=text_visualizer_mask_pred, visualizer_type=LeapDataType.TextMask, name="mask_visualizer_pred")
+leap_binder.set_visualizer(function=text_visualizer_mask_comb, visualizer_type=LeapDataType.TextMask, name="mask_visualizer_comb")
+leap_binder.set_visualizer(function=loss_visualizer, visualizer_type=LeapDataType.Image, name="loss_visualizer")
 
 if __name__ == "__main__":
     leap_binder.check()
