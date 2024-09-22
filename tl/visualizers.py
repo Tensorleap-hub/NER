@@ -16,6 +16,7 @@ scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
 from NER.ner import *
 from NER.utils.ner import *
 from tl.metadata_helpers import *
+from tl.tl_utils import mark_start_of_instance
 
 # TODO: fix take fron the mask vis
 
@@ -44,11 +45,15 @@ def text_visualizer_mask_gt(input_ids: np.ndarray, gt_vec_labels: Union[tf.Tenso
 
     cat_to_int = {c: i for i, c in enumerate(CONFIG["categories"])}
     cat_to_int["B"] = len(CONFIG["categories"])     # give a new color and label to beginning of instance
+
     # Decode token IDS to text tokens in list
     text_tokens = decode_token_ids(input_ids)
 
+    # We add before each instance "-" text token and label "B"
+    text_tokens, labels_names = mark_start_of_instance(text_tokens, labels_names)
+
     # take the category of each class
-    labels_names = [c.split("-")[-1] if "B" not in c else "B" for c in labels_names]
+    labels_names = [c.split("-")[-1] for c in labels_names]
     mask = np.array([cat_to_int[c] if c != "" else 0 for c in labels_names]).astype(np.uint8)
 
     return LeapTextMask(text=text_tokens, mask=mask, labels=CONFIG["categories"]+["B"])
@@ -70,8 +75,11 @@ def text_visualizer_mask_pred(input_ids: np.ndarray, pred_vec_labels: Union[tf.T
     # Decode token IDS to text tokens in list
     text_tokens = decode_token_ids(input_ids)
 
+    # We add before each instance "-" text token and label "B"
+    text_tokens, labels_names = mark_start_of_instance(text_tokens, labels_names)
+
     # take the category of each
-    labels_names = [c.split("-")[-1] if "B" not in c else "B" for c in labels_names]
+    labels_names = [c.split("-")[-1] for c in labels_names]
     mask = np.array([cat_to_int[c] if c != "" else 0 for c in labels_names]).astype(np.uint8)
 
     return LeapTextMask(text=text_tokens, mask=mask, labels=CONFIG["categories"]+["B"])
@@ -86,10 +94,13 @@ def text_visualizer_mask_comb(input_ids: np.ndarray, gt_vec_labels: Union[tf.Ten
 
     gt_text, gt_mask, gt_labels = gt_vis.text, gt_vis.mask, gt_vis.labels
     pred_text, pred_mask, pred_labels = pred_vis.text, pred_vis.mask, pred_vis.labels
-    k = 50
-    gt_text[-1] = gt_text[-1]+"\n\n"    # add new line for the prediction tokens
+
+    # add new line for the prediction tokens
+    gt_text[-1] = gt_text[-1]+"\n\n"
+
+    # merge both text tokens separated by new line
     text = gt_text + pred_text
-    mask = np.concatenate([gt_mask, [0]*(k+2), pred_mask]).astype(dtype=np.uint8)
+    mask = np.concatenate([gt_mask, pred_mask]).astype(dtype=np.uint8)
     return LeapTextMask(text=text, mask=mask, labels=gt_labels)
 
 def plot_vis(vis):
