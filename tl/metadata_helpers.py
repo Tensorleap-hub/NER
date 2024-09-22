@@ -78,18 +78,26 @@ def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     tokens = preprocess.data['ds'][idx]['tokens']
     # Length of text
     metadata_dic['txt_length'] = len(tags)
+
+    n = max(metadata_dic['txt_length'], 1)
+
     # count instances
     res = count_instances(tags)
     for k, v in res.items():
-        metadata_dic[k+"_cnt"] = v
-    # Avg entities length
+        metadata_dic[k+"_inst_cnt"] = v
+        metadata_dic[k+"_inst_percentage"] = v/n        # %
+
+    # Avg entities length and %
     res = calc_instances_avg_len(tags)
     for k, v in res.items():
         metadata_dic[k+"_avg_len"] = v
+        metadata_dic[k+"_avg_len_percentage"] = v/n         # %
+
     # Calc total OOV tokens and OOV per entity type
     res = count_oov(tokens, tags)
     for k, v in res.items():
         metadata_dic[k+"_oov_cnt"] = v
+        metadata_dic[k+"_oov_percentage"] = v/n         # %
     # Entity capitalized
     res = string_formatting(tokens, tags)
     metadata_dic.update(res)
