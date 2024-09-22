@@ -18,9 +18,11 @@ model_label2id = {"B-LOC": 7,
                     }
 model_id2label = {v: k for k, v in model_label2id.items()}
 
+[key for key, value in sorted(model_label2id.items(), key=lambda item: item[1])]
 
 map_idx_to_label = dict(enumerate(CONFIG["labels"]))
 map_idx_to_cat = dict(enumerate(CONFIG["categories"]))
+map_label_idx_to_cat = {i: c.split("-")[-1] for i, c in map_idx_to_label.items()}
 
 model_labels_to_ds_label = {0: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5, 8: 6, 1: 7, 2: 8}
 
@@ -150,7 +152,7 @@ def CE_loss(ground_truth: tf.Tensor, prediction: tf.Tensor) -> tf.Tensor:
 
 
 def mask_one_hot_labels(ground_truth):
-    """ Given GT one hot encoded mask return bool mask for valid tokens """
+    """ Given GT one hot encoded mask return bool mask for valid tokens i.e., exclude CLS SEP and PAD tokens """
     ground_truth = tf.reduce_sum(ground_truth, -1)
     mask = tf.math.not_equal(ground_truth, 0)       # why 0?
     return mask
@@ -161,75 +163,4 @@ def mask_based_inputs(input_ids):
     That is until begin of 0 token ids """
     mask = ~tf.equal(input_ids, 0)
     return mask
-
-
-def precision_recall_f1(ground_truth: tf.Tensor, prediction: tf.Tensor):
-    """`
-    Calculate Precision, Recall, and F1 Score for NER.
-
-    Parameters:
-    true_labels (list of lists): True labels for each token.
-    predicted_labels (list of lists): Predicted labels for each token.
-
-    Returns:
-    precision (float): Precision score
-    recall (float): Recall score
-    f1_score (float): F1 score
-    """
-    # TODO: add ignoring CLS PAD tokens etc
-    O_token = CONFIG["labels"][0]
-    # Mask -100 labels
-    batch_mask = mask_one_hot_labels(ground_truth)
-    # Transform to labels
-    prediction = transform_prediction(prediction)
-    ground_truth = tf.argmax(ground_truth, -1)
-    prediction = tf.argmax(prediction, -1)
-
-    metrics = {"batched_accuracies": [], "batched_precisions": [], "batched_recalls": [], "batched_f1_scores": []}
-
-    def sample_precision_recall_f1(sample_ground_truth, sample_prediction, sample_mask=None):
-
-        if sample_mask is not None:
-            assert len(sample_ground_truth) == len(sample_prediction) == len(sample_mask), "Mismatched number of sequences"
-        else:
-            assert len(sample_ground_truth) == len(sample_prediction), "Mismatched number of sequences"
-
-        true_positives = 0
-        false_positives = 0
-        false_negatives = 0
-
-        # mask by -100 labels
-        if sample_mask is not None:
-            sample_ground_truth = tf.boolean_mask(sample_ground_truth, sample_mask)
-            sample_prediction = tf.boolean_mask(sample_prediction, sample_mask)
-
-        for true_label, pred_label in zip(sample_ground_truth, sample_prediction):
-            true_label, pred_label = true_label.numpy(), pred_label.numpy()
-            # for true_label, pred_label in zip(true_seq, pred_seq):
-            if pred_label == true_label and pred_label != O_token:  # Count only entity labels
-                true_positives += 1
-            elif pred_label != true_label:
-                if pred_label != O_token:
-                    false_positives += 1
-                if true_label != O_token:
-                    false_negatives += 1
-
-        acc = (tf.reduce_sum(tf.cast(sample_ground_truth == sample_prediction, tf.int32)) / min(1, len(sample_ground_truth))).numpy().astype(np.float32)
-        precision = true_positives / (true_positives + false_positives) if (true_positives + false_positives) > 0 else 0
-        recall = true_positives / (true_positives + false_negatives) if (true_positives + false_negatives) > 0 else 0
-        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
-        return acc, precision, recall, f1_score
-
-    for sample_ground_truth, sample_prediction, sample_mask in zip(ground_truth, prediction, batch_mask):
-        acc, precision, recall, f1_score = sample_precision_recall_f1(sample_ground_truth, sample_prediction, sample_mask)
-        metrics["batched_accuracies"].append(acc)
-        metrics["batched_precisions"].append(precision)
-        metrics["batched_recalls"].append(recall)
-        metrics["batched_f1_scores"].append(f1_score)
-
-    for k, v in metrics.items():
-        metrics[k] = tf.constant(v)
-
-    return metrics
-
 

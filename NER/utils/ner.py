@@ -1,9 +1,9 @@
 from typing import List, Tuple
 
 import numpy as np
+import tensorflow as tf
 
 from NER.config import CONFIG
-import tensorflow as tf
 
 model_labels = np.arange(len(CONFIG["labels"]))
 model_label_to_ds_label = {0: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5, 8: 6, 1: 7, 2: 8}
