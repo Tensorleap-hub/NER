@@ -128,8 +128,6 @@ def compute_entity_entropy_per_sample(ground_truth: tf.Tensor, prediction: tf.Te
     :param entity_labels: List of labels for each token (e.g., 'B-ORG', 'I-PER').
     :return: Single entropy score per sample, using the mean of entity token entropies.
     """
-
-    # TODO: add ignoring CLS PAD tokens etc
     # Transform map labels to GT
     prediction = transform_prediction(prediction)
     # Apply Softmax to the logits

@@ -62,9 +62,6 @@ def text_visualizer_mask_gt(input_ids: np.ndarray, gt_vec_labels: Union[tf.Tenso
 def text_visualizer_mask_pred(input_ids: np.ndarray, pred_vec_labels: Union[tf.Tensor, np.ndarray]) -> LeapTextMask:
     """ This is mask text visualizer, showing the Prediction.
      The labels are the classes categories, when we color the beginning of each instance to separate the different instances """
-
-    # mask by special label -100
-
     # To batch
     pred_vec_labels = postprocess_predictions(pred_vec_labels[None, ...], input_ids[None, ...])
     # Mask the predictions
@@ -96,11 +93,11 @@ def text_visualizer_mask_comb(input_ids: np.ndarray, gt_vec_labels: Union[tf.Ten
     pred_text, pred_mask, pred_labels = pred_vis.text, pred_vis.mask, pred_vis.labels
 
     # add new line for the prediction tokens
-    gt_text[-1] = gt_text[-1]+"\n\n"
-
+    token_gt_marker = ["GT:\n"]
+    token_pred_marker = ["\nPrediction:\n"]
     # merge both text tokens separated by new line
-    text = gt_text + pred_text
-    mask = np.concatenate([gt_mask, pred_mask]).astype(dtype=np.uint8)
+    text = token_gt_marker + gt_text + token_pred_marker + pred_text
+    mask = np.concatenate([[0], gt_mask, [0], pred_mask]).astype(dtype=np.uint8)
     return LeapTextMask(text=text, mask=mask, labels=gt_labels)
 
 def plot_vis(vis):

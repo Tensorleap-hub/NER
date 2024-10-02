@@ -29,14 +29,16 @@ def check_custom_integration():
     else:
         model = TFAutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
 
-    for sub in tqdm([train, val, test, ul]):
+    # for sub in tqdm([train, val, test, ul]):
+    for sub in tqdm([test]):
         for i in tqdm(range(1, sub.length), desc="Samples"):
-            tokenized_inputs = input_encoder(i, train)#[None, ...]
-            gt = gt_encoder(i, train)#[None, ...]
+            i = 425
+            tokenized_inputs = input_encoder(i, sub)#[None, ...]
+            gt = gt_encoder(i, sub)#[None, ...]
             inputs = {}
-            inputs["input_ids"] = input_ids(i, train)[None, ...]
-            inputs["token_type_ids"] = input_type_ids(i, train)[None, ...]
-            inputs["attention_mask"] = input_attention_mask(i, train)[None, ...]
+            inputs["input_ids"] = input_ids(i, sub)[None, ...]
+            inputs["token_type_ids"] = input_type_ids(i, sub)[None, ...]
+            inputs["attention_mask"] = input_attention_mask(i, sub)[None, ...]
 
 
             res = metadata_dic(i, train)
