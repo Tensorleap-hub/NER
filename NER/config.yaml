@@ -1,11 +1,11 @@
 cache_dir: "../tensorleap/data/conll2003/"
 
 
-train_size: 1000
-val_size: 1000
-test_size: 1000
+train_size: 5000
+val_size: 3000
+test_size: 1500
 
-ul_size: 1000
+ul_size: 1500
 
 max_length: 512
 
