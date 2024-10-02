@@ -1,9 +1,11 @@
-from typing import List, Optional
+from typing import List
 import numpy as np
-from NER.config import CONFIG
 import tensorflow as tf
 from transformers import AutoTokenizer
 
+from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_custom_loss
+
+from NER.config import CONFIG
 from NER.utils.ner import transform_prediction, align_labels_with_tokens
 
 model_label2id = {"B-LOC": 7,
@@ -17,8 +19,6 @@ model_label2id = {"B-LOC": 7,
                     "O": 0
                     }
 model_id2label = {v: k for k, v in model_label2id.items()}
-
-[key for key, value in sorted(model_label2id.items(), key=lambda item: item[1])]
 
 map_idx_to_label = dict(enumerate(CONFIG["labels"]))
 map_idx_to_cat = dict(enumerate(CONFIG["categories"]))
@@ -134,7 +134,7 @@ def truncate_pad(decoded: List[str], token=0) ->List[str]:
         decoded = decoded[:max_length]
     return decoded
 
-
+@tensorleap_custom_loss(name="CE_loss")
 def CE_loss(ground_truth: tf.Tensor, prediction: tf.Tensor) -> tf.Tensor:
     """
     Description: Computes the combined Categorical Cross-Entropy loss for start and end index predictions.

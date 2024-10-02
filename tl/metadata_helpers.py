@@ -1,9 +1,12 @@
 # import spacy
 from code_loader.contract.datasetclasses import PreprocessResponse
+from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_metadata
 
 from NER.utils.ner import _is_entity, _tag_to_entity_type
 from tl.metadata_helpers import *
 from tl.visualizers import *
+
+
 
 # nlp = spacy.load("en_core_web_sm")
 
@@ -71,6 +74,7 @@ def string_formatting(tokens, int_tags):
 
 
 # Metadata functions allow to add extra data for a later use in analysis.
+@tensorleap_metadata(name="metadata_dic")
 def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     metadata_dic = {}
     metadata_dic["index"] = idx

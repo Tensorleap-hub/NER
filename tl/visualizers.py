@@ -1,13 +1,15 @@
-from typing import Union, Any, Dict
+from typing import Union
 import matplotlib.pyplot as plt
 import numpy as np
+from io import BytesIO
 from matplotlib import colors
 from matplotlib import cm as cmx
 import matplotlib.patches as patches
-from io import BytesIO
 
 # Tensorleap imports
-from code_loader.contract.visualizer_classes import LeapText, LeapTextMask, LeapImage, LeapImageWithHeatmap
+from code_loader.contract.visualizer_classes import LeapText, LeapTextMask, LeapImage
+from code_loader.contract.enums import LeapDataType
+from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_custom_visualizer
 
 jet = plt.get_cmap("jet")
 cNorm = colors.Normalize(vmin=0, vmax=1)
@@ -20,14 +22,14 @@ from tl.tl_utils import mark_start_of_instance
 
 # TODO: fix take fron the mask vis
 
-
+@tensorleap_custom_visualizer(name="input_visualizer", visualizer_type=LeapDataType.Text)
 def input_visualizer(input_ids: np.ndarray) -> LeapText:
     input_ids = input_ids[0] if len(input_ids.shape) == 2 else input_ids    # flatten for batch shape
     input_ids = tf.cast(input_ids, dtype=tf.int32)
     text = decode_token_ids(input_ids)
     return LeapText(text)
 
-
+@tensorleap_custom_visualizer(name="mask_visualizer_gt", visualizer_type=LeapDataType.TextMask)
 def text_visualizer_mask_gt(input_ids: np.ndarray, gt_vec_labels: Union[tf.Tensor, np.ndarray]) -> LeapTextMask:
     """ This is mask text visualizer, showing the GT.
      The labels are the classes categories, when we color the beginning of each instance to separate the different instances """
@@ -58,7 +60,7 @@ def text_visualizer_mask_gt(input_ids: np.ndarray, gt_vec_labels: Union[tf.Tenso
 
     return LeapTextMask(text=text_tokens, mask=mask, labels=CONFIG["categories"]+["B"])
 
-
+@tensorleap_custom_visualizer(name="mask_visualizer_pred", visualizer_type=LeapDataType.TextMask)
 def text_visualizer_mask_pred(input_ids: np.ndarray, pred_vec_labels: Union[tf.Tensor, np.ndarray]) -> LeapTextMask:
     """ This is mask text visualizer, showing the Prediction.
      The labels are the classes categories, when we color the beginning of each instance to separate the different instances """
@@ -81,7 +83,7 @@ def text_visualizer_mask_pred(input_ids: np.ndarray, pred_vec_labels: Union[tf.T
 
     return LeapTextMask(text=text_tokens, mask=mask, labels=CONFIG["categories"]+["B"])
 
-
+@tensorleap_custom_visualizer(name="mask_visualizer_comb", visualizer_type=LeapDataType.TextMask)
 def text_visualizer_mask_comb(input_ids: np.ndarray, gt_vec_labels: Union[tf.Tensor, np.ndarray], pred_vec_labels: Union[tf.Tensor, np.ndarray]) -> LeapTextMask:
     """ This is mask text visualizer, showing the GT and the Prediction together.
      The labels are the classes categories, when we color the beginning of each instance to separate the different instances """
@@ -138,6 +140,7 @@ def plot_vis(vis):
 
     plt.show()
 
+@tensorleap_custom_visualizer(name="loss_visualizer", visualizer_type=LeapDataType.Image)
 def loss_visualizer(input_ids: np.ndarray, ground_truth: tf.Tensor, prediction: tf.Tensor) -> LeapImage:
     """
     Description: Computes the combined Categorical Cross-Entropy loss for start and end index predictions.

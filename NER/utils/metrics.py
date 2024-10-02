@@ -1,14 +1,13 @@
-from typing import List, Optional
 import numpy as np
 from NER.config import CONFIG
 import tensorflow as tf
-from transformers import AutoTokenizer
+from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_custom_metric
 
-from NER.utils.ner import transform_prediction, align_labels_with_tokens
+from NER.utils.ner import transform_prediction
 from NER.ner import mask_one_hot_labels, map_label_idx_to_cat, map_idx_to_label
 
 
-
+@tensorleap_custom_metric(name="metrics")
 def calc_metrics(ground_truth: tf.Tensor, prediction: tf.Tensor):
     """`
     Calculate Accuracy, Precision, Recall, and F1 Score for NER.
@@ -119,7 +118,7 @@ def shannon_entropy(prob_dist):
     prob_dist = prob_dist[prob_dist > 0]
     return -np.sum(prob_dist * np.log(prob_dist))
 
-
+@tensorleap_custom_metric(name="avg_entity_entropy")
 def compute_entity_entropy_per_sample(ground_truth: tf.Tensor, prediction: tf.Tensor):
     """
     Compute the entropy for entities only in each sample.
@@ -188,7 +187,7 @@ def count_splitted_intervals(inter_spans: dict, inter_withins: dict):
     return overlapped
 
 
-
+@tensorleap_custom_metric(name="errors")
 def count_splitting_merging_errors(ground_truth: tf.Tensor, prediction: tf.Tensor):
     # Mask irrelevant labels
     batch_mask = mask_one_hot_labels(ground_truth)
