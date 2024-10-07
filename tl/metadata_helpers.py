@@ -1,9 +1,14 @@
+# import spacy
 from code_loader.contract.datasetclasses import PreprocessResponse
+from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_metadata
 
 from NER.utils.ner import _is_entity, _tag_to_entity_type
 from tl.metadata_helpers import *
 from tl.visualizers import *
 
+
+
+# nlp = spacy.load("en_core_web_sm")
 
 def count_instances(int_tags):
     cats_cnt = {c: 0 for c in CONFIG["categories"][1:]}
@@ -40,7 +45,7 @@ def count_oov(tokens, int_tags):
     return oov_tokens_cnt
 
 
-def count_capitalized(tokens, int_tags):
+def string_formatting(tokens, int_tags):
     tokens_cnt = {f"{c}_{c_case}": 0 for c in CONFIG["categories"][1:]+["total"] for c_case in ["lower", "upper", "capitalize"]}
     tags = [map_idx_to_label[i] for i in int_tags]
     for i, tag in enumerate(tags):
@@ -57,12 +62,19 @@ def count_capitalized(tokens, int_tags):
             cat = _tag_to_entity_type(tags[i])
             tokens_cnt[cat + f"_{key}"] += 1
 
-        tokens_cnt["total" + f"_{key}"] += 1
+        tokens_cnt["total" + f"_{key}"] += 1        # update count of all tokens
 
+    tokens_cnt_prec = {}
+    # add relative counts as well
+    length = max(len(tags), 1)
+    for k, v in tokens_cnt.items():
+        tokens_cnt_prec[k + "_percentage"] = v / length
+    tokens_cnt.update(tokens_cnt_prec)
     return tokens_cnt
 
 
 # Metadata functions allow to add extra data for a later use in analysis.
+@tensorleap_metadata(name="metadata_dic")
 def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     metadata_dic = {}
     metadata_dic["index"] = idx
@@ -70,20 +82,28 @@ def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     tokens = preprocess.data['ds'][idx]['tokens']
     # Length of text
     metadata_dic['txt_length'] = len(tags)
+
+    n = max(metadata_dic['txt_length'], 1)
+
     # count instances
     res = count_instances(tags)
     for k, v in res.items():
-        metadata_dic[k+"_cnt"] = v
-    # Avg entities length
+        metadata_dic[k+"_inst_cnt"] = v
+        metadata_dic[k+"_inst_percentage"] = v/n        # %
+
+    # Avg entities length and %
     res = calc_instances_avg_len(tags)
     for k, v in res.items():
         metadata_dic[k+"_avg_len"] = v
+        metadata_dic[k+"_avg_len_percentage"] = v/n         # %
+
     # Calc total OOV tokens and OOV per entity type
     res = count_oov(tokens, tags)
     for k, v in res.items():
         metadata_dic[k+"_oov_cnt"] = v
+        metadata_dic[k+"_oov_percentage"] = v/n         # %
     # Entity capitalized
-    res = count_capitalized(tokens, tags)
+    res = string_formatting(tokens, tags)
     metadata_dic.update(res)
 
     # Language
@@ -95,3 +115,8 @@ def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     #     #TODO
     # else:       # Labeled
     return metadata_dic
+
+
+# def detect_language(text):
+#     doc = nlp(text)
+#     return doc.lang_

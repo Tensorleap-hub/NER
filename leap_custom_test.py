@@ -29,14 +29,17 @@ def check_custom_integration():
     else:
         model = TFAutoModelForTokenClassification.from_pretrained("dslim/bert-base-NER")
 
-    for sub in tqdm([train, val, test, ul]):
+    # for sub in tqdm([train, val, test, ul]):
+    for sub in tqdm([test]):
         for i in tqdm(range(1, sub.length), desc="Samples"):
-            tokenized_inputs = input_encoder(i, train)#[None, ...]
-            gt = gt_encoder(i, train)#[None, ...]
+            i = 425
+            tokenized_inputs = input_encoder(i, sub)#[None, ...]
+            gt = gt_encoder(i, sub)#[None, ...]
             inputs = {}
-            inputs["input_ids"] = input_ids(i, train)[None, ...]
-            inputs["token_type_ids"] = input_type_ids(i, train)[None, ...]
-            inputs["attention_mask"] = input_attention_mask(i, train)[None, ...]
+            inputs["input_ids"] = input_ids(i, sub)[None, ...]
+            inputs["token_type_ids"] = input_type_ids(i, sub)[None, ...]
+            inputs["attention_mask"] = input_attention_mask(i, sub)[None, ...]
+
 
             res = metadata_dic(i, train)
 
@@ -47,25 +50,33 @@ def check_custom_integration():
             line1, line2 = hf_decode_labels(train.data['ds'][0])
             true_predictions = postprocess_predictions(pred, tokenized_inputs.data["input_ids"])
             true_predictions = postprocess_predictions(pred)
-            # postprocess_labels(gt[None, ...].numpy().tolist())
             inputs_ids = inputs["input_ids"][0]
             vis = input_visualizer(inputs_ids)
             vis.plot_visualizer() if PLOT else None
             # visualize(vis) if PLOT else None
 
-            vis = text_visualizer_mask_pred(inputs_ids, pred_vec_labels=pred[0])
+            scores = count_splitting_merging_errors(batched_gt, pred)
+            scores = calc_metrics(batched_gt, pred)
+            res = compute_entity_entropy_per_sample(batched_gt, pred)
+            loss = CE_loss(batched_gt, pred)
+
+            vis = text_visualizer_mask_comb(inputs_ids, gt, pred[0])
             vis.plot_visualizer() if PLOT else None
             #
-            vis = text_visualizer_mask_gt(inputs_ids, gt_vec_labels=gt)
-            vis.plot_visualizer() if PLOT else None
+            # vis = loss_visualizer(inputs_ids, gt, pred[0])
+            # vis.plot_visualizer() if PLOT else None
+            #
+            # vis = text_visualizer_mask_pred(inputs_ids, pred_vec_labels=pred[0])
+            # vis.plot_visualizer() if PLOT else None
+            # #
+            # vis = text_visualizer_mask_gt(inputs_ids, gt_vec_labels=gt)
+            # vis.plot_visualizer() if PLOT else None
             #
             # vis = class_visualizer(pred)
             # vis.plot_visualizer() if PLOT else None
             #
             # vis = class_visualizer(gt)
             # vis.plot_visualizer() if PLOT else None
-            loss = CE_loss(batched_gt, pred)
-            scores = precision_recall_f1(batched_gt, pred)
 
     print("Done")
 
