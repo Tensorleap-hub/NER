@@ -7,7 +7,7 @@ from transformers import TFAutoModelForTokenClassification
 
 from NER.ner import *
 from leap_binder import *
-# from code_loader.helpers import visualize
+from code_loader.helpers import visualize
 
 
 def check_custom_integration():
@@ -40,7 +40,6 @@ def check_custom_integration():
             inputs["token_type_ids"] = input_type_ids(i, sub)[None, ...]
             inputs["attention_mask"] = input_attention_mask(i, sub)[None, ...]
 
-
             res = metadata_dic(i, train)
 
             pred = model(inputs).logits
@@ -52,8 +51,7 @@ def check_custom_integration():
             true_predictions = postprocess_predictions(pred)
             inputs_ids = inputs["input_ids"][0]
             vis = input_visualizer(inputs_ids)
-            vis.plot_visualizer() if PLOT else None
-            # visualize(vis) if PLOT else None
+            visualize(vis) if PLOT else None
 
             scores = count_splitting_merging_errors(batched_gt, pred)
             scores = calc_metrics(batched_gt, pred)
@@ -61,41 +59,17 @@ def check_custom_integration():
             loss = CE_loss(batched_gt, pred)
 
             vis = text_visualizer_mask_comb(inputs_ids, gt, pred[0])
-            vis.plot_visualizer() if PLOT else None
-            #
-            # vis = loss_visualizer(inputs_ids, gt, pred[0])
-            # vis.plot_visualizer() if PLOT else None
-            #
-            # vis = text_visualizer_mask_pred(inputs_ids, pred_vec_labels=pred[0])
-            # vis.plot_visualizer() if PLOT else None
-            # #
-            # vis = text_visualizer_mask_gt(inputs_ids, gt_vec_labels=gt)
-            # vis.plot_visualizer() if PLOT else None
-            #
-            # vis = class_visualizer(pred)
-            # vis.plot_visualizer() if PLOT else None
-            #
-            # vis = class_visualizer(gt)
-            # vis.plot_visualizer() if PLOT else None
+            visualize(vis) if PLOT else None
+
+            vis = loss_visualizer(inputs_ids, gt, pred[0])
+            visualize(vis) if PLOT else None
+
+            vis = text_visualizer_mask_pred(inputs_ids, pred_vec_labels=pred[0])
+            visualize(vis) if PLOT else None
+
 
     print("Done")
 
-
-        # choices = choice_encoder(i, x[1])[None, ...]
-    #     gt = gt_encoder(i, x[1])[None, ...]
-    #     print(img.shape)
-    #     print(question.shape)
-    #     print(choices.shape)
-    #     vis_image = image_visualizer(img[0])
-    #     # plt.imshow(vis_image.data)
-    #     decoded_text = question_visualizer(question[0])
-    #     decoded_choice = choice_visualizer(choices[0])
-    #     choice_gt_vis_ = choice_gt_vis(choices[0], gt)
-    #     res = model([question, img, choices[..., 0]])
-    #     metadata_dict = get_metadata(i, x[1])
-    #     # ls = loss(tf.nn.softmax(res), gt)
-    #     metadata_q = question_metadata(i, x[1])
-    #     metadata_skills = skills_metadata(i, x[1])
 
 
 if __name__ == '__main__':
