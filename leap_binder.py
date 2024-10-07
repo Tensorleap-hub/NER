@@ -6,13 +6,10 @@ from code_loader.contract.datasetclasses import PreprocessResponse
 from code_loader.inner_leap_binder.leapbinder_decorators import (tensorleap_preprocess, tensorleap_unlabeled_preprocess,
                                                                  tensorleap_input_encoder, tensorleap_gt_encoder)
 
-
-
 from NER.dataset import load_data, downsample_hf_dataset
 from NER.utils.metrics import *
 from tl.metadata_helpers import *
 from tl.visualizers import *
-
 
 
 @tensorleap_preprocess()
@@ -36,6 +33,7 @@ def preprocess_func() -> List[PreprocessResponse]:
     test = PreprocessResponse(length=len(ds_test), data={'ds': ds_test, 'subset': 'test'})
     response = [train, val, test]
     return response
+
 
 @tensorleap_unlabeled_preprocess()
 def preprocess_func_ul() -> List[PreprocessResponse]:
@@ -61,17 +59,20 @@ def input_encoder(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     tokenized_inputs = tokenize_and_align_labels(sample)
     return tokenized_inputs
 
+
 @tensorleap_input_encoder(name="input_ids")
 def input_ids(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     inputs = input_encoder(idx, preprocess).data
     inputs = inputs["input_ids"][0]
     return inputs
 
+
 @tensorleap_input_encoder(name="input_type_ids")
 def input_type_ids(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     inputs = input_encoder(idx, preprocess).data
     inputs = inputs["token_type_ids"][0]
     return inputs
+
 
 @tensorleap_input_encoder(name="attention_mask")
 def input_attention_mask(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
@@ -91,20 +92,6 @@ def gt_encoder(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     return gt_tensor_one_hot[0]
 
 
-
-def metadata_language(idx: int, preprocess: PreprocessResponse) -> int:
-    id_text = preprocess.data['ds'][idx]['id']
-    language_code = id_text.split('-')[0]
-    # TODO: add also language code integer
-    return language_code
-
-
-def metadata_text(idx: int, preprocess: PreprocessResponse) -> Dict[str, Any]:
-    res = {}
-    tokens = input_encoder(idx, preprocess).tokens()
-    res['tokens_length'] = len(tokens)
-    # TODO: add also language code integer
-    return res
 
 
 if __name__ == "__main__":

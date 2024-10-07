@@ -17,7 +17,8 @@ def hf_get_labels(ds) -> List[str]:
 
 
 def hf_decode_labels(sample) -> Tuple[str, str]:
-    """ Given HF dataset sample, return decoded text and corresponding labels as strings """
+    """ Given HF dataset sample, return decoded text and corresponding labels as strings.
+     Used for test purpose """
     label_names = CONFIG["labels"]
     words = sample["tokens"]
     labels = sample["ner_tags"]
@@ -37,7 +38,9 @@ def _tag_to_entity_type(tag: str) -> str:
 
 
 def _is_entity(tag: str) -> bool:
+    """ Check if entity class is not other 'O' """
     return tag != CONFIG["labels"][0]
+
 
 def transform_prediction(tensor: tf.Tensor):
     """ Check if need to transform the tensor shape: [B, 512, 9] """

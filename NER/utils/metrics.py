@@ -19,9 +19,13 @@ def calc_metrics(ground_truth: tf.Tensor, prediction: tf.Tensor):
     predicted_labels (list of lists): Predicted labels for each token.
 
     Returns:
-    precision (float): Precision score
-    recall (float): Recall score
-    f1_score (float): F1 score
+    dictionary with:
+        precision (float): Precision score
+        recall (float): Recall score
+        f1_score (float): F1 score
+
+        [C]_precision, [C]_recall, [C]_f1_score for any category class C: [LOC, ORG, PER, MISC]
+
     """
     # TODO: add ignoring CLS PAD tokens etc
     O_token = CONFIG["labels"][0]
@@ -42,6 +46,7 @@ def calc_metrics(ground_truth: tf.Tensor, prediction: tf.Tensor):
     metrics = {k: [] for k in metrics_names}
 
     def sample_precision_recall_f1(sample_ground_truth, sample_prediction, sample_mask=None):
+        """ Calc the detailed metrics in sample level"""
 
         if sample_mask is not None:
             assert len(sample_ground_truth) == len(sample_prediction) == len(sample_mask), "Mismatched number of sequences"
@@ -96,11 +101,13 @@ def calc_metrics(ground_truth: tf.Tensor, prediction: tf.Tensor):
         return {"accuracy": acc, "precision": precision, "recall": recall, "f1_score": f1_score,
                 **class_metrics}
 
+    # Calc per each sample in batch
     for sample_ground_truth, sample_prediction, sample_mask in zip(ground_truth, prediction, batch_mask):
         dic_scores = sample_precision_recall_f1(sample_ground_truth, sample_prediction, sample_mask)
         for k in metrics:
             metrics[k].append(dic_scores[k])
 
+    # Convert to tensorflow tensor
     for k, v in metrics.items():
         metrics[k] = tf.constant(v)
 
@@ -145,16 +152,35 @@ def compute_entity_entropy_per_sample(ground_truth: tf.Tensor, prediction: tf.Te
 
 
 def extract_entities(label_sequence):
-    """Extracts a list of entities from a sequence of BIO-tagged labels."""
+    """
+    Extracts a list of entities from a sequence of BIO-tagged labels.
+
+    Parameters:
+    label_sequence (list of str): A list of labels in BIO (Begin, Inside, Outside) format.
+        e.g., ['B-PER', 'I-PER', 'O', 'B-LOC', 'I-LOC']
+
+    Returns:
+    list of list of tuples: A list where each element is a list of tuples, each tuple representing
+    an entity. Each tuple contains the index of the label in the original list and the entity type.
+    Each list of tuples represents all tokens that belong to a single entity.
+
+    Example:
+    />>> extract_entities(['B-PER', 'I-PER', 'O', 'B-LOC', 'I-LOC'])
+    [[(0, 'PER'), (1, 'PER')], [(3, 'LOC'), (4, 'LOC')]]
+
+    The function processes the label sequence, identifying entities based on 'B-' (begin) and 'I-'
+    (inside) tags. It groups contiguous 'B-' and 'I-' tags as single entities and handles 'O' tags as
+    separators between entities.
+    """
     entities = []
     current_entity = []
     for index, label in enumerate(label_sequence):
-        if label.startswith('B-'):
+        if label.startswith('B-'):      # start new entity instance
             if current_entity:
                 entities.append(current_entity)
                 current_entity = []
             current_entity.append((index, label[2:]))
-        elif label.startswith('I-') and current_entity:
+        elif label.startswith('I-') and current_entity:     # inside given entity instance
             current_entity.append((index, label[2:]))
         else:
             if current_entity:
@@ -189,6 +215,22 @@ def count_splitted_intervals(inter_spans: dict, inter_withins: dict):
 
 @tensorleap_custom_metric(name="errors")
 def count_splitting_merging_errors(ground_truth: tf.Tensor, prediction: tf.Tensor):
+    """
+    Calculates the number of splitting and merging errors in named entity recognition predictions compared to the ground truth.
+
+    Parameters:
+    - ground_truth (tf.Tensor): A tensor of shape (batch_size, sequence_length, num_labels) containing the one-hot encoded labels of the ground truth.
+    - prediction (tf.Tensor): A tensor of shape (batch_size, sequence_length, num_labels) containing the model predictions, which may be logits or probabilities that need to be transformed into label indices.
+
+    Returns:
+    - dict: A dictionary containing two tensors 'splitting_errors' and 'merging_errors' each of shape (batch_size,). These tensors count the number of splitting and merging errors for each sample in the batch.
+
+    This function masks irrelevant labels, aligns the predictions with the ground truth, and converts the model outputs to discrete labels.
+    It then extracts named entities using a BIO tagging scheme and compares the ground truth and prediction spans to determine the count of splitting and merging errors:
+    - Splitting errors occur when a single ground truth entity is split into multiple entities in the predictions.
+    - Merging errors occur when multiple ground truth entities are merged into a single entity in the predictions.
+
+    """
     # Mask irrelevant labels
     batch_mask = mask_one_hot_labels(ground_truth)
     # Transform the prediction and swap the labels order according to gt
@@ -221,20 +263,6 @@ def count_splitting_merging_errors(ground_truth: tf.Tensor, prediction: tf.Tenso
         splitting_errors = count_splitted_intervals(inter_spans=gt_sample_spans, inter_withins=pred_sample_spans)
         # Check for merging errors
         merging_errors = count_splitted_intervals(inter_spans=pred_sample_spans, inter_withins=gt_sample_spans)
-
-
-        # for gt_span, gt_type in gt_sample_spans.items():
-        #     matching_pred_spans = [pred_span for pred_span in pred_sample_spans if
-        #                            pred_span[0] >= gt_span[0]]
-        #     if len(matching_pred_spans) > 1:
-        #         splitting_errors += 1
-        #
-        # for pred_span, pred_type in pred_sample_spans.items():
-        #     matching_gt_spans = [gt_span for gt_span in gt_spans if
-        #                          gt_span[0] >= pred_span[0] and gt_span[1] <= pred_span[1]]
-        #     if len(matching_gt_spans) > 1:
-        #         merging_errors += 1
-
 
         scores["splitting_errors"].append(splitting_errors)
         scores["merging_errors"].append(merging_errors)
