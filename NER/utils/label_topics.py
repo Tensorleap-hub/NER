@@ -20,30 +20,6 @@ def get_top_words(model, feature_names, n_top_words):
     return top_words
 
 
-def label_topic(text: Union[str, List[str]], lda, vectorizer):
-    top_words = get_top_words(lda, vectorizer.get_feature_names_out(), 20)
-    topic_names = [
-        "Global Politics and Security",
-        "Financial and Economic News",
-        "Sports and Entertainment",
-        "Sports Competitions and Events",
-        "Sports Results and Competitions",
-        "Public Safety and Urban Affairs",
-        "International News and Events"
-    ]
-    topics = list(top_words.keys())
-    data_vectorized = vectorizer.transform([text] if isinstance(text, str) else text)
-    data_topics = np.argmax(lda.transform(data_vectorized), axis=1)
-
-    res = {
-        'topic_number': data_topics.tolist(),
-        'topic_name': [topic_names[topic_num] for topic_num in data_topics],
-        'top_words': [top_words[topics[topic_num]] for topic_num in data_topics],
-    }
-    if len(data_topics) == 1:
-        for k, v in res.items():
-            res[k] = v[0]
-    return res
 
 def build_corpus_from_tl_prep():
     train, val, test = preprocess_func()
@@ -98,22 +74,10 @@ if __name__ == "__main__":
     lda, vectorizer, df = fit_LDA()
 
     # Save the tokenizer and LDA model
-    dump(vectorizer, 'assets/vectorizer.joblib')
-    dump(lda, 'assets/lda_model.joblib')
+    dump(vectorizer, 'assets/vectorizer.joblib', protocol=4)        # protocol=4 for python 3.8
+    dump(lda, 'assets/lda_model.joblib', protocol=4)
 
-    # Labeled based on topic representation
+    print("Done!")
 
 
-    # from bertopic import BERTopic
-    # topic_model = BERTopic.load("davanstrien/chat_topics")
-    # topic_model = BERTopic.load("MaartenGr/BERTopic_Wikipedia")
-    # topic_model = BERTopic.load("jaimevera1107/moderation-topics")
-    # topics = topic_model.get_topic_info()
-    #
-    # data = corpus[0:20]
-    # topic, prob = topic_model.transform(data)
-    #
-    # df = topics.iloc[topic+1][['Name', 'Representation']]
-    # df["text"] = data
-    # df["prob"] = prob
 

@@ -15,6 +15,20 @@ from tl.visualizers import input_visualizer, text_visualizer_mask_gt, text_visua
 from tl.metadata_helpers import metadata_dic
 from NER.utils.metrics import compute_entity_entropy_per_sample, count_splitting_merging_errors, calc_metrics
 
+import subprocess
+import sys
+
+def install(package, version=None):
+    if version:
+        package_name = f"{package}=={version}"
+    else:
+        package_name = package
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+
+install("numpy", "1.24.4")  # Replace "1.21.0" with your desired version
+install("joblib", "1.4.2")  # Replace "1.21.0" with your desired version
+
+
 
 def decode_text(i: int, subset: PreprocessResponse):
     tokens = subset.data['ds'][i]
