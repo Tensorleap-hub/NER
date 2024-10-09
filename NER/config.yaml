@@ -1,5 +1,7 @@
 cache_dir: "../tensorleap/data/conll2003/"
-
+gcs_project: splendid-flow-231921
+gcs_bucket_name: datasets-reteai
+gcs_data_dir: NER/
 
 train_size: 5000
 val_size: 3000

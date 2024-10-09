@@ -1,11 +1,17 @@
+from typing import List, Union
 # import spacy
+from joblib import load
+import os
 from code_loader.contract.datasetclasses import PreprocessResponse
 from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_metadata
 
 from NER.utils.ner import _is_entity, _tag_to_entity_type
-from tl.metadata_helpers import *
-from tl.visualizers import *
+from NER.utils.gcs_utils import _download
 
+from tl.visualizers import *
+from tl.tl_utils import decode_text
+from NER.config import CONFIG
+from NER.ner import tokenizer, map_idx_to_label
 
 
 # nlp = spacy.load("en_core_web_sm")
@@ -17,6 +23,7 @@ def count_instances(int_tags):
         if 'B' in l:
             cats_cnt[_tag_to_entity_type(l)] += 1
     return cats_cnt
+
 
 def calc_instances_avg_len(int_tags):
     cats_cnt = count_instances(int_tags)
@@ -30,6 +37,7 @@ def calc_instances_avg_len(int_tags):
         n = cats_cnt[k]
         cats_tokens_cnt[k] = v/(n if n > 0 else 1)
     return cats_tokens_cnt
+
 
 def count_oov(tokens, int_tags):
     oov_tokens_cnt = {c: 0 for c in CONFIG["categories"][1:]}
@@ -73,6 +81,56 @@ def string_formatting(tokens, int_tags):
     return tokens_cnt
 
 
+# Get the LDA and vectorizer
+# dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'NER', 'utils', 'assets'))
+# Load the LDA model from disk
+cloud_fpath = os.path.join(CONFIG['gcs_data_dir'], 'vectorizer.joblib')
+fpath = _download(cloud_fpath)
+vectorizer = load(fpath)
+
+cloud_fpath = os.path.join(CONFIG['gcs_data_dir'], 'lda_model.joblib')
+fpath = _download(cloud_fpath)
+lda = load(fpath)
+
+def get_top_words(model, feature_names, n_top_words):
+    top_words = {}
+    for topic_idx, topic in enumerate(model.components_):
+        key = f"Topic #{topic_idx}"
+        val = " ".join([feature_names[i] for i in topic.argsort()[:-n_top_words - 1:-1]])
+        top_words[key] = val
+    return top_words
+
+def label_topic(text: Union[str, List[str]], lda, vectorizer):
+    top_words = get_top_words(lda, vectorizer.get_feature_names_out(), 20)
+    topic_names = [
+        "Global Politics and Security",
+        "Financial and Economic News",
+        "Sports and Entertainment",
+        "Sports Competitions and Events",
+        "Sports Results and Competitions",
+        "Public Safety and Urban Affairs",
+        "International News and Events"
+    ]
+    topics = list(top_words.keys())
+    data_vectorized = vectorizer.transform([text] if isinstance(text, str) else text)
+    data_topics = np.argmax(lda.transform(data_vectorized), axis=1)
+
+    res = {
+        'topic_number': data_topics.tolist(),
+        'topic_name': [topic_names[topic_num] for topic_num in data_topics],
+        'top_words': [top_words[topics[topic_num]] for topic_num in data_topics],
+    }
+    if len(data_topics) == 1:
+        for k, v in res.items():
+            res[k] = v[0]
+    return res
+def get_sample_topic(i: int, subset: PreprocessResponse) -> dict:
+    text = decode_text(i, subset)
+    res = label_topic(text, lda, vectorizer)
+    return res
+
+
+
 # Metadata functions allow to add extra data for a later use in analysis.
 @tensorleap_metadata(name="metadata_dic")
 def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
@@ -106,10 +164,8 @@ def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     res = string_formatting(tokens, tags)
     metadata_dic.update(res)
 
-    # Language
-    # TODO
-    # Get POS use it also
-    # TODO
+    res = get_sample_topic(idx, preprocess)
+    metadata_dic.update(res)
 
     # if preprocess.data['subset']== 'ul':
     #     #TODO
@@ -117,6 +173,5 @@ def metadata_dic(idx: int, preprocess: PreprocessResponse) -> int:
     return metadata_dic
 
 
-# def detect_language(text):
-#     doc = nlp(text)
-#     return doc.lang_
+
+

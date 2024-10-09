@@ -1,6 +1,7 @@
 from typing import Union
 import matplotlib.pyplot as plt
 import numpy as np
+import tensorflow as tf
 from io import BytesIO
 from matplotlib import colors
 from matplotlib import cm as cmx
@@ -15,8 +16,9 @@ jet = plt.get_cmap("jet")
 cNorm = colors.Normalize(vmin=0, vmax=1)
 scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
 
-from NER.ner import *
-from NER.utils.ner import *
+from NER.ner import decode_token_ids, postprocess_labels, mask_one_hot_labels, postprocess_predictions, mask_based_inputs
+from NER.utils.ner import transform_prediction
+
 from tl.metadata_helpers import *
 from tl.tl_utils import mark_start_of_instance
 

@@ -11,6 +11,12 @@ code-loader = "1.0.59"
 datasets = "^2.21.0"
 transformers = "^4.44.2"
 matplotlib = ">=3.3,<3.4"
+google-cloud = "^0.34.0"
+google-auth = "^2.35.0"
+google-cloud-storage = "^2.18.2"
+wrapt = "^1.16.0"
+joblib = "^1.4.2"
+scikit-learn = "^1.5.2"
 
 
 [build-system]

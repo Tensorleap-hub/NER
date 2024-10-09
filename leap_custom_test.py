@@ -1,13 +1,15 @@
 import os
-from leap_binder import preprocess_func, preprocess_func_ul, input_encoder, gt_encoder
 import tensorflow as tf
-
 from tqdm import tqdm
 from transformers import TFAutoModelForTokenClassification
 
-from NER.ner import *
-from leap_binder import *
 from code_loader.helpers import visualize
+
+from NER.ner import *
+from leap_binder import preprocess_func, preprocess_func_ul, input_encoder, gt_encoder, input_ids, input_attention_mask, input_type_ids
+from tl.metadata_helpers import metadata_dic, get_sample_topic
+from tl.visualizers import input_visualizer, text_visualizer_mask_comb, text_visualizer_mask_gt, text_visualizer_mask_pred
+from NER.utils.metrics import calc_metrics, compute_entity_entropy_per_sample, count_splitting_merging_errors
 
 
 def check_custom_integration():
@@ -40,13 +42,13 @@ def check_custom_integration():
             inputs["token_type_ids"] = input_type_ids(i, sub)[None, ...]
             inputs["attention_mask"] = input_attention_mask(i, sub)[None, ...]
 
-            res = metadata_dic(i, train)
+            res = get_sample_topic(i, sub)
+            res = metadata_dic(i, sub)
 
             pred = model(inputs).logits
             pred = tf.transpose(pred, [0, 2, 1])        # simulate as in the platform
 
             batched_gt = gt[None, ...]
-            line1, line2 = hf_decode_labels(train.data['ds'][0])
             true_predictions = postprocess_predictions(pred, tokenized_inputs.data["input_ids"])
             true_predictions = postprocess_predictions(pred)
             inputs_ids = inputs["input_ids"][0]
@@ -61,8 +63,6 @@ def check_custom_integration():
             vis = text_visualizer_mask_comb(inputs_ids, gt, pred[0])
             visualize(vis) if PLOT else None
 
-            vis = loss_visualizer(inputs_ids, gt, pred[0])
-            visualize(vis) if PLOT else None
 
             vis = text_visualizer_mask_pred(inputs_ids, pred_vec_labels=pred[0])
             visualize(vis) if PLOT else None

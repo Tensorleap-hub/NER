@@ -12,6 +12,8 @@ def load_od_config() -> Dict[str, Any]:
 
     cache_dir = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), config['cache_dir']))
     config['cache_dir'] = cache_dir
+    config['local_data_path'] = os.path.join(os.getenv("HOME"), "tensorleap", "data", config['gcs_bucket_name'])
+
     return config
 
 

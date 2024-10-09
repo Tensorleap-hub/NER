@@ -7,6 +7,7 @@ include:
     - NER/*.py
     - NER/*.yaml
     - tl/*.py
+    - NER/utils/assets/*.joblib
     - leap_binder.py
     - leap_test.py
     - leap_custom_test.py
