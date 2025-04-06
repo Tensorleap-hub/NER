@@ -24,17 +24,20 @@ from tl.tl_utils import mark_start_of_instance
 
 @tensorleap_custom_visualizer(name="input_visualizer", visualizer_type=LeapDataType.Text)
 def input_visualizer(input_ids: np.ndarray) -> LeapText:
-    input_ids = input_ids[0] if len(input_ids.shape) == 2 else input_ids    # flatten for batch shape
+    input_ids = np.squeeze(input_ids)
+    input_ids = input_ids[0] if len(input_ids.shape) == 2 else input_ids  # flatten for batch shape
     input_ids = tf.cast(input_ids, dtype=tf.int32)
     text = decode_token_ids(input_ids)
     return LeapText(text)
 
 @tensorleap_custom_visualizer(name="mask_visualizer_gt", visualizer_type=LeapDataType.TextMask)
-def text_visualizer_mask_gt(input_ids: np.ndarray, gt_vec_labels: Union[tf.Tensor, np.ndarray]) -> LeapTextMask:
+def text_visualizer_mask_gt(input_ids: np.ndarray, gt_vec_labels: np.ndarray) -> LeapTextMask:
     """ This is mask text visualizer, showing the GT.
      The labels are the classes categories, when we color the beginning of each instance to separate the different instances """
 
-    gt_vec_labels = gt_vec_labels.numpy() if isinstance(gt_vec_labels, tf.Tensor) else gt_vec_labels  # convert to numpy
+    input_ids = np.squeeze(input_ids)
+    gt_vec_labels = np.squeeze(gt_vec_labels)
+
     # mask by special label -100
     mask = mask_one_hot_labels(gt_vec_labels)
     gt_vec_labels = gt_vec_labels.argmax(-1)  # from one-hot to labels
@@ -61,18 +64,18 @@ def text_visualizer_mask_gt(input_ids: np.ndarray, gt_vec_labels: Union[tf.Tenso
     return LeapTextMask(text=text_tokens, mask=mask, labels=CONFIG["categories"]+["B"])
 
 @tensorleap_custom_visualizer(name="mask_visualizer_pred", visualizer_type=LeapDataType.TextMask)
-def text_visualizer_mask_pred(input_ids: np.ndarray, pred_vec_labels: Union[tf.Tensor, np.ndarray]) -> LeapTextMask:
+def text_visualizer_mask_pred(input_ids: np.ndarray, pred_vec_labels: np.ndarray) -> LeapTextMask:
     """ This is mask text visualizer, showing the Prediction.
      The labels are the classes categories, when we color the beginning of each instance to separate the different instances """
     # To batch
-    pred_vec_labels = postprocess_predictions(pred_vec_labels[None, ...], input_ids[None, ...])
+    pred_vec_labels = postprocess_predictions(pred_vec_labels, input_ids)
     # Mask the predictions
     labels_names = pred_vec_labels[0]    # get single sample
 
     cat_to_int = {c: i for i, c in enumerate(CONFIG["categories"])}
     cat_to_int["B"] = len(CONFIG["categories"])  # give a new color and label to beginning of instance
     # Decode token IDS to text tokens in list
-    text_tokens = decode_token_ids(input_ids)
+    text_tokens = decode_token_ids(np.squeeze(input_ids))
 
     # We add before each instance "-" text token and label "B"
     text_tokens, labels_names = mark_start_of_instance(text_tokens, labels_names)
@@ -84,12 +87,17 @@ def text_visualizer_mask_pred(input_ids: np.ndarray, pred_vec_labels: Union[tf.T
     return LeapTextMask(text=text_tokens, mask=mask, labels=CONFIG["categories"]+["B"])
 
 @tensorleap_custom_visualizer(name="mask_visualizer_comb", visualizer_type=LeapDataType.TextMask)
-def text_visualizer_mask_comb(input_ids: np.ndarray, gt_vec_labels: Union[tf.Tensor, np.ndarray], pred_vec_labels: Union[tf.Tensor, np.ndarray]) -> LeapTextMask:
+def text_visualizer_mask_comb(input_ids: np.ndarray, gt_vec_labels: np.ndarray,
+                              pred_vec_labels: np.ndarray) -> LeapTextMask:
     """ This is mask text visualizer, showing the GT and the Prediction together.
      The labels are the classes categories, when we color the beginning of each instance to separate the different instances """
 
+    input_ids = np.squeeze(input_ids)
+    gt_vec_labels = np.squeeze(gt_vec_labels)
+    pred_vec_labels = np.squeeze(pred_vec_labels)
+
     gt_vis = text_visualizer_mask_gt(input_ids, gt_vec_labels)
-    pred_vis = text_visualizer_mask_pred(input_ids, pred_vec_labels)
+    pred_vis = text_visualizer_mask_pred(input_ids[None, ...], pred_vec_labels[None, ...])
 
     gt_text, gt_mask, gt_labels = gt_vis.text, gt_vis.mask, gt_vis.labels
     pred_text, pred_mask, pred_labels = pred_vis.text, pred_vis.mask, pred_vis.labels
@@ -141,7 +149,7 @@ def plot_vis(vis):
     plt.show()
 
 @tensorleap_custom_visualizer(name="loss_visualizer", visualizer_type=LeapDataType.Image)
-def loss_visualizer(input_ids: np.ndarray, ground_truth: tf.Tensor, prediction: tf.Tensor) -> LeapImage:
+def loss_visualizer(input_ids: np.ndarray, ground_truth: np.ndarray, prediction: np.ndarray) -> LeapImage:
     """
     Description: Computes the combined Categorical Cross-Entropy loss for start and end index predictions.
     Parameters:
@@ -150,6 +158,10 @@ def loss_visualizer(input_ids: np.ndarray, ground_truth: tf.Tensor, prediction: 
     Returns:
     combined_loss (tf.Tensor): Combined loss for start and end index predictions, computed as the sum of individual Categorical Cross-Entropy losses weighted by alpha.
     """
+    input_ids = np.squeeze(input_ids)
+    ground_truth = np.squeeze(ground_truth)
+    prediction = np.squeeze(prediction)
+
     mask = mask_based_inputs(input_ids)
 
     # cut padded tokens
