@@ -64,22 +64,21 @@ def input_encoder(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
 def input_ids(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     inputs = input_encoder(idx, preprocess).data
     inputs = inputs["input_ids"][0]
-    return inputs
+    return inputs.numpy().astype(np.float32)
 
 
 @tensorleap_input_encoder(name="input_type_ids")
 def input_type_ids(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     inputs = input_encoder(idx, preprocess).data
     inputs = inputs["token_type_ids"][0]
-    return inputs
+    return inputs.numpy().astype(np.float32)
 
 
 @tensorleap_input_encoder(name="attention_mask")
 def input_attention_mask(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     inputs = input_encoder(idx, preprocess).data
     inputs = inputs["attention_mask"][0]
-    return inputs
-
+    return inputs.numpy().astype(np.float32)
 
 
 # Ground truth encoder fetches the label with the index `idx` from the `labels` array set in
@@ -88,7 +87,7 @@ def input_attention_mask(idx: int, preprocess: PreprocessResponse) -> np.ndarray
 def gt_encoder(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     tokenized_inputs = input_encoder(idx, preprocess)   # get tokenized labels
     labels = tokenized_inputs.data["labels"]
-    gt_tensor_one_hot = tf.one_hot(labels, depth=len(CONFIG["labels"]))
+    gt_tensor_one_hot = tf.one_hot(labels, depth=len(CONFIG["labels"])).numpy()
     return gt_tensor_one_hot[0]
 
 

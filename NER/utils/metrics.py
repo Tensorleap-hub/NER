@@ -8,7 +8,7 @@ from NER.ner import mask_one_hot_labels, map_label_idx_to_cat, map_idx_to_label
 
 
 @tensorleap_custom_metric(name="metrics")
-def calc_metrics(ground_truth: tf.Tensor, prediction: tf.Tensor):
+def calc_metrics(ground_truth: np.ndarray, prediction: np.ndarray):
     """`
     Calculate Accuracy, Precision, Recall, and F1 Score for NER.
     - Total metric score
@@ -27,6 +27,9 @@ def calc_metrics(ground_truth: tf.Tensor, prediction: tf.Tensor):
         [C]_precision, [C]_recall, [C]_f1_score for any category class C: [LOC, ORG, PER, MISC]
 
     """
+    ground_truth = tf.convert_to_tensor(ground_truth)
+    prediction = tf.convert_to_tensor(prediction)
+
     # TODO: add ignoring CLS PAD tokens etc
     O_token = CONFIG["labels"][0]
     # Mask -100 labels
@@ -109,7 +112,7 @@ def calc_metrics(ground_truth: tf.Tensor, prediction: tf.Tensor):
 
     # Convert to tensorflow tensor
     for k, v in metrics.items():
-        metrics[k] = tf.constant(v)
+        metrics[k] = np.array(v, dtype=np.float32)
 
     return metrics
 
@@ -126,7 +129,7 @@ def shannon_entropy(prob_dist):
     return -np.sum(prob_dist * np.log(prob_dist))
 
 @tensorleap_custom_metric(name="avg_entity_entropy")
-def compute_entity_entropy_per_sample(ground_truth: tf.Tensor, prediction: tf.Tensor):
+def compute_entity_entropy_per_sample(ground_truth: np.ndarray, prediction: np.ndarray):
     """
     Compute the entropy for entities only in each sample.
 
@@ -134,6 +137,10 @@ def compute_entity_entropy_per_sample(ground_truth: tf.Tensor, prediction: tf.Te
     :param entity_labels: List of labels for each token (e.g., 'B-ORG', 'I-PER').
     :return: Single entropy score per sample, using the mean of entity token entropies.
     """
+
+    ground_truth = tf.convert_to_tensor(ground_truth)
+    prediction = tf.convert_to_tensor(prediction)
+
     # Transform map labels to GT
     prediction = transform_prediction(prediction)
     # Apply Softmax to the logits
@@ -214,13 +221,13 @@ def count_splitted_intervals(inter_spans: dict, inter_withins: dict):
 
 
 @tensorleap_custom_metric(name="errors")
-def count_splitting_merging_errors(ground_truth: tf.Tensor, prediction: tf.Tensor):
+def count_splitting_merging_errors(ground_truth: np.ndarray, prediction: np.ndarray):
     """
     Calculates the number of splitting and merging errors in named entity recognition predictions compared to the ground truth.
 
     Parameters:
-    - ground_truth (tf.Tensor): A tensor of shape (batch_size, sequence_length, num_labels) containing the one-hot encoded labels of the ground truth.
-    - prediction (tf.Tensor): A tensor of shape (batch_size, sequence_length, num_labels) containing the model predictions, which may be logits or probabilities that need to be transformed into label indices.
+    - ground_truth (np.ndarray): A np.ndarray of shape (batch_size, sequence_length, num_labels) containing the one-hot encoded labels of the ground truth.
+    - prediction (np.ndarray): A np.ndarray of shape (batch_size, sequence_length, num_labels) containing the model predictions, which may be logits or probabilities that need to be transformed into label indices.
 
     Returns:
     - dict: A dictionary containing two tensors 'splitting_errors' and 'merging_errors' each of shape (batch_size,). These tensors count the number of splitting and merging errors for each sample in the batch.
@@ -231,6 +238,9 @@ def count_splitting_merging_errors(ground_truth: tf.Tensor, prediction: tf.Tenso
     - Merging errors occur when multiple ground truth entities are merged into a single entity in the predictions.
 
     """
+    ground_truth = tf.convert_to_tensor(ground_truth)
+    prediction = tf.convert_to_tensor(prediction)
+
     # Mask irrelevant labels
     batch_mask = mask_one_hot_labels(ground_truth)
     # Transform the prediction and swap the labels order according to gt
@@ -267,7 +277,7 @@ def count_splitting_merging_errors(ground_truth: tf.Tensor, prediction: tf.Tenso
         scores["splitting_errors"].append(splitting_errors)
         scores["merging_errors"].append(merging_errors)
 
-    # Convert to tensors
-    scores["splitting_errors"] = tf.constant(scores["splitting_errors"])
-    scores["merging_errors"] = tf.constant(scores["merging_errors"])
+    # # Convert to tensors
+    scores["splitting_errors"] = np.array(scores["splitting_errors"], dtype=np.float32)
+    scores["merging_errors"] = np.array(scores["merging_errors"], dtype=np.float32)
     return scores

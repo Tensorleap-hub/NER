@@ -6,11 +6,13 @@ authors = ["danielle.benbashat <danielle.benbashat@tensorleap.ai>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.12"
-code-loader = "1.0.59"
+python = ">=3.9,<3.11"
+onnx2kerastl = "^0.0.164"
 datasets = "^2.21.0"
 transformers = "^4.44.2"
 matplotlib = ">=3.3,<3.4"
+code-loader-helpers = "^1.0.20"
+code-loader = "^1.0.77.1"
 
 
 [build-system]
