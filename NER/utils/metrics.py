@@ -155,7 +155,7 @@ def compute_entity_entropy_per_sample(ground_truth: np.ndarray, prediction: np.n
     entropies = [[shannon_entropy(token_dist) for token_dist in dist] for dist in entity_prob_distributions]
 
     # Return the mean entropy of entity tokens, or another aggregation method
-    return tf.reduce_mean(entropies, -1) if entropies else tf.zeros_like(ground_truth)  # Handle case with no entities
+    return (tf.reduce_mean(entropies, -1) if entropies else tf.zeros_like(ground_truth)).numpy() # Handle case with no entities
 
 
 def extract_entities(label_sequence):
