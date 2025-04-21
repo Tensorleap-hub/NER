@@ -135,24 +135,16 @@ def truncate_pad(decoded: List[str], token=0) ->List[str]:
     return decoded
 
 @tensorleap_custom_loss(name="CE_loss")
-def CE_loss(ground_truth: np.ndarray, prediction: np.ndarray) -> tf.Tensor:
-    """
-    Description: Computes the combined Categorical Cross-Entropy loss for start and end index predictions.
-    Parameters:
-    ground_truth (np.ndarray): Ground truth np.ndarray of shape [B, max_sequence_length, 2].
-    prediction (np.ndarray): Predicted np.ndarray of shape [B, max_sequence_length, 2].
-    Returns:
-    combined_loss (tf.Tensor): Combined loss for start and end index predictions, computed as the sum of individual Categorical Cross-Entropy losses weighted by alpha.
-    """
-
+def CE_loss(ground_truth: np.ndarray, prediction: np.ndarray) -> np.ndarray:
     ground_truth = tf.convert_to_tensor(ground_truth)
     prediction = tf.convert_to_tensor(prediction)
 
     prediction = transform_prediction(prediction)
-    loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    loss = tf.keras.losses.CategoricalCrossentropy(from_logits=True, reduction='none')
     # -100 label encoded as zero vec i.e., (0, 0, .., 0) thus we don't need to mask in the loss
     loss_val = loss(ground_truth, prediction)
-    return np.array(loss_val.numpy())
+    loss_val = tf.reduce_mean(loss_val, axis=1)
+    return loss_val.numpy()
 
 
 def mask_one_hot_labels(ground_truth):
