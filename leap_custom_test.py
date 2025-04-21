@@ -13,6 +13,11 @@ from code_loader.helpers import visualize
 def check_custom_integration():
     LOAD_MODEL = True
     PLOT = True
+    check_generic = True
+
+    if check_generic:
+        leap_binder.check()
+
     print("Starting custom tests")
 
     # Load Data
