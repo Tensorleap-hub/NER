@@ -1,0 +1,263 @@
+decorators:
+  - operation: Input
+    data:
+      type: Input
+      output_name: input_ids
+    id: '373'
+    inputs: {}
+    outputs:
+      input_ids:
+        - inputKey: input
+          operation: Permute
+          name: permute_1
+          id: '372'
+        - inputKey: input_ids
+          operation: Visualizer
+          id: '1029'
+        - inputKey: input_ids
+          operation: Visualizer
+          id: '1038'
+        - inputKey: input_ids
+          operation: Visualizer
+          id: '1039'
+        - inputKey: input_ids
+          operation: Visualizer
+          id: '1042'
+  - operation: Input
+    data:
+      type: Input
+      output_name: input_type_ids
+    id: '376'
+    inputs: {}
+    outputs:
+      input_type_ids:
+        - inputKey: input
+          operation: Permute
+          name: permute_3
+          id: '375'
+  - operation: Input
+    data:
+      type: Input
+      output_name: attention_mask
+    id: '417'
+    inputs: {}
+    outputs:
+      attention_mask:
+        - inputKey: input
+          operation: Permute
+          name: permute_5
+          id: '416'
+  - operation: GroundTruth
+    data:
+      type: GroundTruth
+      output_name: attention_mask
+      selected: ner_tags
+    id: '1024'
+    inputs: {}
+    outputs:
+      attention_mask:
+        - inputKey: gt_vec_labels
+          operation: Visualizer
+          id: '1039'
+        - inputKey: ground_truth
+          operation: Metric
+          id: '1040'
+        - inputKey: gt_vec_labels
+          operation: Visualizer
+          id: '1042'
+        - inputKey: ground_truth
+          operation: Metric
+          id: '1034'
+        - inputKey: ground_truth
+          operation: Metric
+          id: '1043'
+        - inputKey: ground_truth
+          operation: CustomLoss
+          id: '1025'
+  - operation: CustomLoss
+    data:
+      arg_names:
+        - ground_truth
+        - prediction
+      user_unique_name: CE_loss_test
+      name: CE_loss
+      selected: CE_loss
+      type: CustomLoss
+    id: '1025'
+    inputs:
+      prediction:
+        - outputKey: feature_map
+          operation: Permute
+          name: permute_6
+          id: '1'
+      ground_truth:
+        - outputKey: attention_mask
+          operation: GroundTruth
+          id: '1024'
+    outputs:
+      loss:
+        - inputKey: '0'
+          operation: Adamax
+          id: '1026'
+  - operation: Adamax
+    data:
+      type: Optimizer
+      custom_input_keys:
+        - 1026-0
+    id: '1026'
+    inputs:
+      '0':
+        - outputKey: loss
+          operation: CustomLoss
+          id: '1025'
+    outputs: {}
+  - operation: Visualizer
+    data:
+      type: Visualizer
+      name: input_visualizer
+      visualizer_name: input_visualizer
+      visualizer_type: Text
+      arg_names:
+        - input_ids
+      user_unique_name: input_visualizer
+    id: '1029'
+    inputs:
+      input_ids:
+        - outputKey: input_ids
+          operation: Input
+          id: '373'
+    outputs: {}
+  - operation: Metric
+    data:
+      type: Metric
+      name: metrics
+      metric_name: metrics
+      arg_names:
+        - ground_truth
+        - prediction
+      user_unique_name: metrics
+    id: '1034'
+    inputs:
+      prediction:
+        - outputKey: feature_map
+          operation: Permute
+          name: permute_6
+          id: '1'
+      ground_truth:
+        - outputKey: attention_mask
+          operation: GroundTruth
+          id: '1024'
+    outputs: {}
+  - operation: Visualizer
+    data:
+      type: Visualizer
+      name: mask_visualizer_pred
+      visualizer_name: mask_visualizer_pred
+      visualizer_type: TextMask
+      arg_names:
+        - input_ids
+        - pred_vec_labels
+      user_unique_name: mask_visualizer_pred
+    id: '1038'
+    inputs:
+      pred_vec_labels:
+        - outputKey: feature_map
+          operation: Permute
+          name: permute_6
+          id: '1'
+      input_ids:
+        - outputKey: input_ids
+          operation: Input
+          id: '373'
+    outputs: {}
+  - operation: Visualizer
+    data:
+      type: Visualizer
+      name: mask_visualizer_gt
+      visualizer_name: mask_visualizer_gt
+      visualizer_type: TextMask
+      arg_names:
+        - input_ids
+        - gt_vec_labels
+      user_unique_name: mask_visualizer_gt
+    id: '1039'
+    inputs:
+      input_ids:
+        - outputKey: input_ids
+          operation: Input
+          id: '373'
+      gt_vec_labels:
+        - outputKey: attention_mask
+          operation: GroundTruth
+          id: '1024'
+    outputs: {}
+  - operation: Metric
+    data:
+      type: Metric
+      name: avg_entity_entropy
+      metric_name: avg_entity_entropy
+      arg_names:
+        - ground_truth
+        - prediction
+      user_unique_name: avg_entity_entropy
+    id: '1040'
+    inputs:
+      prediction:
+        - outputKey: feature_map
+          operation: Permute
+          name: permute_6
+          id: '1'
+      ground_truth:
+        - outputKey: attention_mask
+          operation: GroundTruth
+          id: '1024'
+    outputs: {}
+  - operation: Visualizer
+    data:
+      type: Visualizer
+      name: mask_visualizer_comb
+      visualizer_name: mask_visualizer_comb
+      visualizer_type: TextMask
+      arg_names:
+        - input_ids
+        - gt_vec_labels
+        - pred_vec_labels
+      user_unique_name: mask_visualizer_comb
+    id: '1042'
+    inputs:
+      pred_vec_labels:
+        - outputKey: feature_map
+          operation: Permute
+          name: permute_6
+          id: '1'
+      input_ids:
+        - outputKey: input_ids
+          operation: Input
+          id: '373'
+      gt_vec_labels:
+        - outputKey: attention_mask
+          operation: GroundTruth
+          id: '1024'
+    outputs: {}
+  - operation: Metric
+    data:
+      type: Metric
+      name: errors
+      metric_name: errors
+      arg_names:
+        - ground_truth
+        - prediction
+      user_unique_name: errors
+    id: '1043'
+    inputs:
+      prediction:
+        - outputKey: feature_map
+          operation: Permute
+          name: permute_6
+          id: '1'
+      ground_truth:
+        - outputKey: attention_mask
+          operation: GroundTruth
+          id: '1024'
+    outputs: {}
+layers: []
