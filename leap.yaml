@@ -1,8 +1,9 @@
-codeIntegrationId: 66d0674ae649aecdcc68acaf
-projectId: 66c20d3c91f772f9177f5f08
+codeIntegrationId: 6873828982435f023ae06128
+projectId: 6873828382435f023ae06122
 secretId: ""
 entryFile: leap_binder.py
 include:
+    - requirements.txt
     - NER/utils/*.py
     - NER/*.py
     - NER/*.yaml
@@ -10,3 +11,4 @@ include:
     - leap_binder.py
     - leap_test.py
     - leap_custom_test.py
+pythonVersion: py38
