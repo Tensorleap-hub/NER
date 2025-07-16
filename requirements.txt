@@ -1,0 +1,7 @@
+code-loader
+datasets==2.3.2
+
+code-loader-helpers
+transformers==4.46.3
+
+tensorflow==2.12.0
