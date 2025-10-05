@@ -83,7 +83,7 @@ def input_attention_mask(idx: int, preprocess: PreprocessResponse) -> np.ndarray
 
 # Ground truth encoder fetches the label with the index `idx` from the `labels` array set in
 # the PreprocessResponse's data. Returns a numpy array containing a hot vector label correlated with the sample.
-@tensorleap_gt_encoder(name="attention_mask")
+@tensorleap_gt_encoder(name="attention_mask_gt")
 def gt_encoder(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     tokenized_inputs = input_encoder(idx, preprocess)   # get tokenized labels
     labels = tokenized_inputs.data["labels"]
