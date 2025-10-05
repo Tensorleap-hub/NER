@@ -21,8 +21,6 @@ def load_model():
 
 @integration_test()
 def check_custom_integration(idx, responses_set):
-    idx = 425
-
     print("Starting custom tests")
     model = load_model()
 
@@ -58,5 +56,5 @@ def check_custom_integration(idx, responses_set):
 
 if __name__ == '__main__':
     responses = preprocess_func()
-    train = responses[2]
+    train = responses[0]
     check_custom_integration(0, train)
