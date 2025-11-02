@@ -1,8 +1,9 @@
-codeIntegrationId: 6873828982435f023ae06128
-projectId: 6873828382435f023ae06122
+codeIntegrationId: 6906f959fcfae1a75a5fd18e
+projectId: 6906f951fcfae1a75a5fd187
 secretId: ""
-entryFile: leap_binder.py
+entryFile: leap_integration.py
 include:
+    - leap_integration.py
     - requirements.txt
     - NER/utils/*.py
     - NER/*.py

@@ -10,9 +10,9 @@ python = ">=3.9,<3.11"
 onnx2kerastl = "^0.0.164"
 datasets = "^2.21.0"
 transformers = "^4.44.2"
-matplotlib = ">=3.3,<3.4"
+matplotlib = "3.7.3"
 code-loader-helpers = "^1.0.20"
-code-loader = "^1.0.77.1"
+code-loader = "^1.0.145"
 
 
 [build-system]
