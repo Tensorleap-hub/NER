@@ -1,6 +1,6 @@
 import os
 
-from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_load_model, integration_test
+from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_load_model, tensorleap_integration_test
 from code_loader.plot_functions.visualize import visualize
 
 from leap_binder import preprocess_func, preprocess_func_ul, input_encoder, gt_encoder
@@ -19,7 +19,7 @@ def load_model():
     model_path = os.path.join(dir_path, H5_MODEL_PATH)
     return tf.keras.models.load_model(os.path.join(dir_path, model_path))
 
-@integration_test()
+@tensorleap_integration_test()
 def check_custom_integration(idx, responses_set):
     print("Starting custom tests")
     model = load_model()

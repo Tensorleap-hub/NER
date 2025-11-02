@@ -1,4 +1,4 @@
-code-loader
+code-loader==1.0.143.dev4
 datasets==2.3.2
 
 code-loader-helpers
