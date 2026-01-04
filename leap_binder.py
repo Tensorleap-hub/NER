@@ -1,7 +1,7 @@
 from typing import Dict, Any
 # Tensorleap imports
 from code_loader import leap_binder
-from code_loader.contract.enums import LeapDataType
+from code_loader.contract.enums import LeapDataType, DataStateType
 from code_loader.contract.datasetclasses import PreprocessResponse
 from code_loader.inner_leap_binder.leapbinder_decorators import (tensorleap_preprocess, tensorleap_unlabeled_preprocess,
                                                                  tensorleap_input_encoder, tensorleap_gt_encoder)
@@ -28,9 +28,9 @@ def preprocess_func() -> List[PreprocessResponse]:
     # Generate a PreprocessResponse for each data slice, to later be read by the encoders.
     # The length of each data slice is provided, along with the data dictionary.
     # In this example we pass `images` and `labels` that later are encoded into the inputs and outputs 
-    train = PreprocessResponse(length=len(ds_train), data={'ds': ds_train, 'subset': 'train'})
-    val = PreprocessResponse(length=len(ds_val), data={'ds': ds_val, 'subset': 'val'})
-    test = PreprocessResponse(length=len(ds_test), data={'ds': ds_test, 'subset': 'test'})
+    train = PreprocessResponse(length=len(ds_train), data={'ds': ds_train, 'subset': 'train'},state=DataStateType.training)
+    val = PreprocessResponse(length=len(ds_val), data={'ds': ds_val, 'subset': 'val'},state=DataStateType.validation)
+    test = PreprocessResponse(length=len(ds_test), data={'ds': ds_test, 'subset': 'test'},state=DataStateType.test)
     response = [train, val, test]
     return response
 
@@ -47,7 +47,7 @@ def preprocess_func_ul() -> List[PreprocessResponse]:
     # Generate a PreprocessResponse for each data slice, to later be read by the encoders.
     # The length of each data slice is provided, along with the data dictionary.
     # In this example we pass `images` and `labels` that later are encoded into the inputs and outputs
-    response = PreprocessResponse(length=len(ds_test), data={'ds': ds_test, 'subset': 'ul'})
+    response = PreprocessResponse(length=len(ds_test), data={'ds': ds_test, 'subset': 'ul'},state=DataStateType.unlabeled)
     return response
 
 # Input encoder fetches the image with the index `idx` from the `images` array set in
@@ -60,21 +60,21 @@ def input_encoder(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     return tokenized_inputs
 
 
-@tensorleap_input_encoder(name="input_ids")
+@tensorleap_input_encoder(name="input_ids",channel_dim=-1)
 def input_ids(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     inputs = input_encoder(idx, preprocess).data
     inputs = inputs["input_ids"][0]
     return inputs.numpy().astype(np.float32)
 
 
-@tensorleap_input_encoder(name="input_type_ids")
+@tensorleap_input_encoder(name="input_type_ids",channel_dim=-1)
 def input_type_ids(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     inputs = input_encoder(idx, preprocess).data
     inputs = inputs["token_type_ids"][0]
     return inputs.numpy().astype(np.float32)
 
 
-@tensorleap_input_encoder(name="attention_mask")
+@tensorleap_input_encoder(name="attention_mask",channel_dim=-1)
 def input_attention_mask(idx: int, preprocess: PreprocessResponse) -> np.ndarray:
     inputs = input_encoder(idx, preprocess).data
     inputs = inputs["attention_mask"][0]

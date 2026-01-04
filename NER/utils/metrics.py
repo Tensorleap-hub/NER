@@ -1,13 +1,13 @@
 import numpy as np
 from NER.config import CONFIG
 import tensorflow as tf
-from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_custom_metric
+from code_loader.inner_leap_binder.leapbinder_decorators import *
 
 from NER.utils.ner import transform_prediction
 from NER.ner import mask_one_hot_labels, map_label_idx_to_cat, map_idx_to_label
 
 
-@tensorleap_custom_metric(name="metrics")
+@tensorleap_custom_metric(name="metrics",direction=MetricDirection.Downward)
 def calc_metrics(ground_truth: np.ndarray, prediction: np.ndarray):
     """`
     Calculate Accuracy, Precision, Recall, and F1 Score for NER.
@@ -128,7 +128,7 @@ def shannon_entropy(prob_dist):
     prob_dist = prob_dist[prob_dist > 0]
     return -np.sum(prob_dist * np.log(prob_dist))
 
-@tensorleap_custom_metric(name="avg_entity_entropy")
+@tensorleap_custom_metric(name="avg_entity_entropy",direction=MetricDirection.Downward)
 def compute_entity_entropy_per_sample(ground_truth: np.ndarray, prediction: np.ndarray):
     """
     Compute the entropy for entities only in each sample.
@@ -220,7 +220,7 @@ def count_splitted_intervals(inter_spans: dict, inter_withins: dict):
     return overlapped
 
 
-@tensorleap_custom_metric(name="errors")
+@tensorleap_custom_metric(name="errors",direction=MetricDirection.Downward)
 def count_splitting_merging_errors(ground_truth: np.ndarray, prediction: np.ndarray):
     """
     Calculates the number of splitting and merging errors in named entity recognition predictions compared to the ground truth.
