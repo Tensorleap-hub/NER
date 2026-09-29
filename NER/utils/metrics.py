@@ -143,8 +143,8 @@ def compute_entity_entropy_per_sample(ground_truth: np.ndarray, prediction: np.n
 
     # Transform map labels to GT
     prediction = transform_prediction(prediction)
-    # Apply Softmax to the logits
-    prediction = tf.nn.softmax(prediction, 1)
+    # Apply Softmax to the logits (over the labels axis: prediction is [B, seq_len, n_labels])
+    prediction = tf.nn.softmax(prediction, -1)
 
     # Convert one hot to labels
     ground_truth = tf.argmax(ground_truth, -1)
@@ -154,8 +154,9 @@ def compute_entity_entropy_per_sample(ground_truth: np.ndarray, prediction: np.n
     # Compute entropy for entity tokens only
     entropies = [[shannon_entropy(token_dist) for token_dist in dist] for dist in entity_prob_distributions]
 
-    # Return the mean entropy of entity tokens, or another aggregation method
-    return (tf.reduce_mean(entropies, -1) if entropies else tf.zeros_like(ground_truth)).numpy() # Handle case with no entities
+    # Return the mean entropy of entity tokens per sample. Averaged per sample since each sample has a
+    # different number of entity tokens; samples without entities get 0
+    return np.array([np.mean(dist) if dist else 0.0 for dist in entropies], dtype=np.float32)
 
 
 def extract_entities(label_sequence):
@@ -252,9 +253,9 @@ def count_splitting_merging_errors(ground_truth: np.ndarray, prediction: np.ndar
     ground_truth = ground_truth.numpy()
     prediction = prediction.numpy()
 
-    # Mask Gt and Pred accordingly
-    ground_truth = np.stack([gt[mask] for gt, mask in zip(ground_truth, batch_mask)])
-    prediction = np.stack([pred[mask] for pred, mask in zip(prediction, batch_mask)])
+    # Mask Gt and Pred accordingly (kept as a list: each sample has a different number of valid tokens)
+    ground_truth = [gt[mask] for gt, mask in zip(ground_truth, batch_mask)]
+    prediction = [pred[mask] for pred, mask in zip(prediction, batch_mask)]
     # To label names
     gt_labels = [[map_idx_to_label[i] for i in gt] for gt in ground_truth]
     pred_labels = [[map_idx_to_label[i] for i in pred] for pred in prediction]
