@@ -4,7 +4,7 @@ from code_loader.inner_leap_binder.leapbinder_decorators import tensorleap_load_
 from code_loader.plot_functions.visualize import visualize
 
 from leap_binder import preprocess_func, preprocess_func_ul, input_encoder, gt_encoder
-import tensorflow as tf
+import onnxruntime as ort
 
 from tqdm import tqdm
 from transformers import TFAutoModelForTokenClassification
@@ -14,10 +14,8 @@ from leap_binder import *
 
 @tensorleap_load_model([])
 def load_model():
-    H5_MODEL_PATH = "NER/NER/model/ner.h5"
-    dir_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    model_path = os.path.join(dir_path, H5_MODEL_PATH)
-    return tf.keras.models.load_model(os.path.join(dir_path, model_path))
+    dir_path = os.path.dirname(os.path.abspath(__file__))
+    return ort.InferenceSession(os.path.join(dir_path, 'NER/model/model.onnx'))
 
 @tensorleap_integration_test()
 def check_custom_integration(idx, responses_set):
@@ -29,7 +27,7 @@ def check_custom_integration(idx, responses_set):
     input2 = input_attention_mask(idx, responses_set)
     input3 = input_type_ids(idx, responses_set)
 
-    pred = model([input1, input2, input3])
+    pred = model.run(None, {'input_ids': input1, 'attention_mask': input2, 'token_type_ids': input3})[0]
 
     vis1 = input_visualizer(input1)
     vis2 = text_visualizer_mask_gt(input1, gt)
